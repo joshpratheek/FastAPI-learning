@@ -35,7 +35,10 @@ built to practise everything I learn.
 4. Apply the concept to StudyTrack.
 5. Complete coding challenges and revision questions.
 
-## Documentation
+## Lesson notes
+
+- [Lesson 01 — FastAPI Fundamentals](notes/01-fastapi-basics.md): GET routes, decorators, Python lists versus JSON, common mistakes, questions and StudyTrack practice.
+- [StudyTrack starter application](studytrack/main.py): three in-memory study sessions with three GET endpoints.
 
 The notes folder will contain:
 - Detailed concept explanations
@@ -46,4 +49,4 @@ The notes folder will contain:
 
 ## Progress
 
-Current status: Setting up the learning environment.
+Current status: **Video 1 completed and documented.** StudyTrack Video 1 starter code reviewed; local Swagger UI testing not yet confirmed. Next: Video 2.
