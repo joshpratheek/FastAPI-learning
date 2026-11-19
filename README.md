@@ -1,52 +1,58 @@
-
 # FastAPI Learning Journey
 
-This repository documents my journey of learning FastAPI
-from scratch using Corey Schafer's tutorials and
-independent projects.
+Learning **backend API development** with Python and FastAPI, using freeCodeCamp's *Python API Development — Comprehensive Course for Beginners* (Sanjeev Thiyagarajan).
+
+**Course:** https://www.youtube.com/watch?v=0sOvCWFmrtA
+
+## Goal
+
+Build REST APIs confidently: HTTP routes, request and response handling, data validation, CRUD, databases, authentication and testing. The focus is on **Python backend development**, not HTML, CSS, Bootstrap or server-rendered templates.
 
 ## Projects
 
-### 1. Corey Schafer's FastAPI Tutorial
-Following Corey Schafer's tutorial series to understand
-FastAPI concepts and build practical applications.
+### freeCodeCamp tutorial project (upcoming)
 
-### 2. StudyTrack API
-An independent Study and Productivity Tracker API
-built to practise everything I learn.
+Follow the course's Python backend/social-media API project. Write and test the tutorial code step by step as each topic is covered. No tutorial application code has been committed yet.
 
-## Learning Topics
+### StudyTrack (independent practice)
 
-- FastAPI fundamentals
-- HTTP methods and API routing
-- Path and query parameters
-- Pydantic models and data validation
-- SQLAlchemy and database operations
-- CRUD operations
+[StudyTrack starter API](studytrack/main.py) is my separate study-session tracker, where I apply what I learn **after** completing the corresponding tutorial lesson.
+
+Current saved implementation uses a Python list of three study sessions with GET endpoints: `/`, `/sessions`, and `/first-session`. These endpoints have been written and reviewed; local Swagger UI testing has not yet been confirmed.
+
+## Learning process
+
+1. Watch a short freeCodeCamp course section in order.
+2. Understand the Python and FastAPI logic, not just copy syntax.
+3. Write and test the instructor's backend tutorial code.
+4. Apply the same concept independently to StudyTrack.
+5. Record confirmed learning, mistakes, fixes and progress here or in the `notes/` folder.
+
+## Current progress
+
+- **Course selected:** freeCodeCamp's FastAPI / Python API Development course.
+- **Hands-on progress in this course:** Not yet started.
+- **Concepts already discussed:** FastAPI app instances, GET routes, endpoint responses, Python lists/dictionaries versus JSON, and a basic understanding of REST APIs and HTTP methods.
+- **Next lesson:** Course introduction/project overview, virtual environment setup, and the first FastAPI application.
+
+## Planned topics (not yet marked complete)
+
+- HTTP methods and REST API design
+- Route, path and query parameters
+- Pydantic models and validation
+- CRUD endpoints
+- PostgreSQL and SQLAlchemy
 - Authentication and authorization
-- API testing
-- Deployment
+- API testing and deployment
 
-## Learning Approach
+## Run the current StudyTrack starter
 
-1. Watch Corey's tutorial.
-2. Understand each concept.
-3. Rebuild the tutorial code independently.
-4. Apply the concept to StudyTrack.
-5. Complete coding challenges and revision questions.
+From the `studytrack` directory with FastAPI and Uvicorn installed:
 
-## Lesson notes
+    python -m uvicorn main:app --reload
 
-- [Lesson 01 — FastAPI Fundamentals](notes/01-fastapi-basics.md): GET routes, decorators, Python lists versus JSON, common mistakes, questions and StudyTrack practice.
-- [StudyTrack starter application](studytrack/main.py): three in-memory study sessions with three GET endpoints.
+Then visit `http://127.0.0.1:8000/docs`.
 
-The notes folder will contain:
-- Detailed concept explanations
-- Code examples with comments
-- Common mistakes and their corrections
-- Practice exercises
-- Interview and revision questions
+## Public repository safety
 
-## Progress
-
-Current status: **Video 1 completed and documented.** StudyTrack Video 1 starter code reviewed; local Swagger UI testing not yet confirmed. Next: Video 2.
+Never commit passwords, tokens, credentials, `.env` files, or personal information. Review changes before every commit and push.
