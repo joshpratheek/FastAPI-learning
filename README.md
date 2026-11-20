@@ -19,7 +19,7 @@ Apply each lesson to my own study-session tracking API **after** completing the 
 ## Current progress — Pydantic models and POST request data
 
 **Course section reached:** Starting FastAPI (36:21), Path Operations (39:23), Postman introduction (53:22), and HTTP Requests / first POST request (57:34 onwards).  
-**Current section:** Schema Validation with Pydantic (1:07:29). **Next:** Creating and storing posts (in-memory CRUD).  
+**Most recently discussed:** Pydantic schema validation (1:07:29), defaults, model objects vs dictionaries, and backend-generated IDs. **Next video chapter:** CRUD Operations (1:22:45). Database setup begins later (3:53:48), not at 1:22:48.  
 **Status:** Reached the Pydantic section and discussed a new `Post` model in chat. The newer Pydantic code has not yet been verified in GitHub; the previous GET/POST checkpoint is committed and reviewed. Swagger UI request-body practice was reported by the learner; the assistant has not run the local server.
 
 ### Concepts learned so far
@@ -83,6 +83,7 @@ class Post(BaseModel):
 - **Defaults:** When omitted, `published` becomes `True` and `rating` becomes `None`. `Optional[int]` needs `from typing import Optional`; on modern Python, `int | None` is an alternative.
 - **Function parameter:** `def create_post(post: Post):` instructs FastAPI to read and validate the request body into a `Post` model. An explicit `Body(...)` is not required for this basic case.
 - **Object versus dictionary:** `post` is a model instance and fields can be accessed as `post.title`. `post.model_dump()` returns a regular Python dictionary. Sanjeev's `post.dict()` is the older Pydantic v1 style and is deprecated under v2.
+- **Accessing fields by key versus attribute:** A Pydantic model supports `post.title`; after `post_dict = post.model_dump()`, a regular Python dictionary supports `post_dict["title"]`. Both yield the same title value. `post["title"]` is not supported by a standard Pydantic `BaseModel` instance, and regular dictionaries do not support `post_dict.title` by default. `post.model_dump()["title"]` is valid when a dictionary is needed immediately. The old raw-body `payload: dict = Body(...)` was *already a dictionary*, so `payload["title"]` worked without conversion.
 - **Printing:** With input `{"id":1,"title":"Python","content":"Learning FastAPI"}`, `print(post)` shows `id=1 title='Python' content='Learning FastAPI' published=True rating=None`. By contrast, `print(post.model_dump())` prints a dictionary with keys and Python values.
 - **Returning:** Both `return {"msg": post}` and `return {"msg": post.model_dump()}` yield equivalent JSON in FastAPI. `model_dump()` is useful when we need to manipulate the fields as a dictionary, not obligatory just for a response.
 - **Syntax correction:** `post.__dict()` raises a `TypeError` because `__dict__` is an attribute, not a callable method. Prefer `post.model_dump()`.
@@ -201,9 +202,13 @@ class Post(BaseModel):
 - Declaring an endpoint parameter as `post: Post` makes FastAPI parse and validate the HTTP JSON request body using the model.
 - **Next check:** Send a post with `id`, `title`, and `content` but omit `published` and `rating`; reason about their default values. Fix the two errors in the locally saved file before testing.
 
+### GitHub review checkpoint
+
+Reviewed the connected public repository on 2026-11-20: `fcc-tut/main.py` still contains the first valid GET routes and `create_post(payload: dict = Body(...))` POST handler. **There is no committed `Post(BaseModel)` or `post.model_dump()` in that file yet**, so the new Pydantic implementation cannot be checked until the local file is saved, committed, and pushed. Keep the tutorial code self-written; documentation updates don't replace a code commit.
+
 ## Topics coming up
 
-- [In progress] Pydantic request validation and schemas
+- [Discussed; pending verified GitHub code] Pydantic request validation and schemas
 - CRUD and in-memory post storage
 - Path parameters, status codes, and error handling
 - PostgreSQL, SQLAlchemy, and databases
