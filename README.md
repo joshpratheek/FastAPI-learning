@@ -16,11 +16,11 @@ Following the instructor's social-media-style backend API project. The local fol
 
 Apply each lesson to my own study-session tracking API **after** completing the corresponding tutorial practice. The version currently committed has three in-memory study sessions and GET endpoints `/`, `/sessions`, and `/first-session`.
 
-## Current progress — through HTTP requests, POST requests, request bodies, and parameters
+## Current progress — Pydantic models and POST request data
 
 **Course section reached:** Starting FastAPI (36:21), Path Operations (39:23), Postman introduction (53:22), and HTTP Requests / first POST request (57:34 onwards).  
-**Next section:** Schema Validation with Pydantic (1:07:29).  
-**Status:** Reached this point in the video; practised sending JSON using FastAPI's Swagger UI and discussed its connection to Postman. Initial tutorial `main.py` is committed and its code has been reviewed; live requests have not been independently run by the assistant.
+**Current section:** Schema Validation with Pydantic (1:07:29). **Next:** Creating and storing posts (in-memory CRUD).  
+**Status:** Reached the Pydantic section and discussed a new `Post` model in chat. The newer Pydantic code has not yet been verified in GitHub; the previous GET/POST checkpoint is committed and reviewed. Swagger UI request-body practice was reported by the learner; the assistant has not run the local server.
 
 ### Concepts learned so far
 
@@ -61,6 +61,35 @@ I opened `POST /createposts` in `/docs` and observed **Request body required** a
 I replaced it with a JSON object and executed the request. **Swagger UI and Postman are both HTTP clients** that can send the same JSON to the same FastAPI endpoint; the server-side `payload` receives the data the same way regardless of which client sends it. Swagger UI is auto-generated from FastAPI's schema, while Postman is a separate API testing client.
 
 **Question resolved:** The Pydantic class I remembered from earlier API practice is a *different way of declaring and validating a request body*. It is written in Python, not inside Swagger UI. We'll learn that next in the Pydantic section.
+
+### Pydantic lesson — model, defaults, model_dump, and generated IDs
+
+**New code discussed in chat (not yet verified as committed):**
+
+```python
+from typing import Optional
+from pydantic import BaseModel
+
+class Post(BaseModel):
+    id: int
+    title: str
+    content: str
+    published: bool = True
+    rating: Optional[int] = None
+```
+
+- **Purpose:** A Pydantic `BaseModel` declares the structure of incoming JSON, parses it, validates required fields and types, and informs the generated API documentation. It does **not** save anything to a database.
+- **Required fields:** In this version `id`, `title` and `content` have no defaults, so all three are required. A missing `content` produces a 422 validation response before the route function runs.
+- **Defaults:** When omitted, `published` becomes `True` and `rating` becomes `None`. `Optional[int]` needs `from typing import Optional`; on modern Python, `int | None` is an alternative.
+- **Function parameter:** `def create_post(post: Post):` instructs FastAPI to read and validate the request body into a `Post` model. An explicit `Body(...)` is not required for this basic case.
+- **Object versus dictionary:** `post` is a model instance and fields can be accessed as `post.title`. `post.model_dump()` returns a regular Python dictionary. Sanjeev's `post.dict()` is the older Pydantic v1 style and is deprecated under v2.
+- **Printing:** With input `{"id":1,"title":"Python","content":"Learning FastAPI"}`, `print(post)` shows `id=1 title='Python' content='Learning FastAPI' published=True rating=None`. By contrast, `print(post.model_dump())` prints a dictionary with keys and Python values.
+- **Returning:** Both `return {"msg": post}` and `return {"msg": post.model_dump()}` yield equivalent JSON in FastAPI. `model_dump()` is useful when we need to manipulate the fields as a dictionary, not obligatory just for a response.
+- **Syntax correction:** `post.__dict()` raises a `TypeError` because `__dict__` is an attribute, not a callable method. Prefer `post.model_dump()`.
+- **Who creates IDs?** Typically the server/database, not the client. If IDs are server-generated, omit required `id` from the incoming `Post` schema. For in-memory examples, the server can assign unique IDs; later a database identity/sequence can do this automatically. An ID assignment alone does not persist a post.
+- **Design note:** A request schema and a database model can have different responsibilities. Pydantic validation does not itself create database tables or rows.
+
+**Learning check answered correctly:** The learner identified that missing required `content` is rejected, and that `published` defaults to `True` while `rating` defaults to `None`.
 
 ### Verified tutorial code on GitHub
 
