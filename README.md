@@ -1,58 +1,102 @@
 # FastAPI Learning Journey
 
-Learning **backend API development** with Python and FastAPI, using freeCodeCamp's *Python API Development — Comprehensive Course for Beginners* (Sanjeev Thiyagarajan).
+Learning **Python backend development and REST APIs** using [freeCodeCamp's *Python API Development — Comprehensive Course for Beginners*](https://www.youtube.com/watch?v=0sOvCWFmrtA), taught by Sanjeev Thiyagarajan.
 
-**Course:** https://www.youtube.com/watch?v=0sOvCWFmrtA
+## My goal
 
-## Goal
-
-Build REST APIs confidently: HTTP routes, request and response handling, data validation, CRUD, databases, authentication and testing. The focus is on **Python backend development**, not HTML, CSS, Bootstrap or server-rendered templates.
+Learn to design, build, test, and document FastAPI backends. Focus on Python, HTTP, JSON, validation, CRUD, databases, authentication, and API testing — **not** frontend design, Bootstrap, or Jinja2 templates.
 
 ## Projects
 
-### freeCodeCamp tutorial project (upcoming)
+### freeCodeCamp tutorial — working locally
 
-Follow the course's Python backend/social-media API project. Write and test the tutorial code step by step as each topic is covered. No tutorial application code has been committed yet.
+Following the instructor's social-media-style API project. My local tutorial folder is named `fcc-tut` (as shown in my workspace). **No tutorial source code is committed to this repository yet**, so the example below documents concepts rather than claiming to be a copy of my current local `main.py`.
 
-### StudyTrack (independent practice)
+### [StudyTrack — independent API project](studytrack/main.py)
 
-[StudyTrack starter API](studytrack/main.py) is my separate study-session tracker, where I apply what I learn **after** completing the corresponding tutorial lesson.
+Apply each lesson to my own study-session tracking API **after** completing the corresponding tutorial practice. The version currently committed has three in-memory study sessions and GET endpoints `/`, `/sessions`, and `/first-session`.
 
-Current saved implementation uses a Python list of three study sessions with GET endpoints: `/`, `/sessions`, and `/first-session`. These endpoints have been written and reviewed; local Swagger UI testing has not yet been confirmed.
+## Current progress — through HTTP requests, POST requests, and request data
 
-## Learning process
+**Course section reached:** Starting FastAPI (36:21), Path Operations (39:23), Postman introduction (53:22), and HTTP Requests / first POST request (57:34 onwards).  
+**Next section:** Schema Validation with Pydantic (1:07:29).  
+**Status:** Reached this point in the video; local code and live request tests have not been independently reviewed here.
 
-1. Watch a short freeCodeCamp course section in order.
-2. Understand the Python and FastAPI logic, not just copy syntax.
-3. Write and test the instructor's backend tutorial code.
-4. Apply the same concept independently to StudyTrack.
-5. Record confirmed learning, mistakes, fixes and progress here or in the `notes/` folder.
+### Concepts learned so far
 
-## Current progress
+- **API / REST:** An HTTP interface for clients to access resources. GET commonly reads data; POST commonly submits data.
+- **FastAPI app:** `app = FastAPI()` creates the application instance.
+- **Path operations:** `@app.get("/")` and `@app.post("/createposts")` combine an HTTP method and URL path with a Python handler function.
+- **Responses:** Returning a Python dictionary from a FastAPI endpoint sends a JSON response.
+- **Postman:** An HTTP client for sending GET/POST requests and inspecting the status and response, without building a frontend.
+- **Request body:** A POST request can carry JSON in its body. FastAPI can read the body as a Python dictionary.
+- **`Body(...)`:** Declares that the handler expects a required request body.
+- **`print(...)` versus `return`:** `print` writes to the server terminal; `return` produces the response sent to the client.
 
-- **Course selected:** freeCodeCamp's FastAPI / Python API Development course.
-- **Hands-on progress in this course:** Not yet started.
-- **Concepts already discussed:** FastAPI app instances, GET routes, endpoint responses, Python lists/dictionaries versus JSON, and a basic understanding of REST APIs and HTTP methods.
-- **Next lesson:** Course introduction/project overview, virtual environment setup, and the first FastAPI application.
+### Consolidated practice example for this stage
 
-## Planned topics (not yet marked complete)
+*This is a learning summary of the instructor's early route/request-body patterns, not a verified copy of my local project file.*
 
-- HTTP methods and REST API design
-- Route, path and query parameters
-- Pydantic models and validation
-- CRUD endpoints
-- PostgreSQL and SQLAlchemy
+```python
+from fastapi import FastAPI, Body
+
+app = FastAPI()
+
+@app.get("/")
+def root():
+    return {"message": "Hello World"}
+
+@app.get("/posts")
+def get_posts():
+    return {"data": "Here are your posts"}
+
+@app.post("/createposts")
+def create_posts(payload: dict = Body(...)):
+    print(payload)  # Server terminal
+    return {"message": "Successfully created posts"}  # JSON response
+```
+
+Example JSON sent by Postman to `POST http://127.0.0.1:8000/createposts`:
+
+```json
+{
+  "title": "Learning FastAPI",
+  "content": "Today I learned POST requests"
+}
+```
+
+**Important:** This example receives JSON but does **not** save the new post. In-memory storage and full CRUD will be covered in later sections. Accepting `dict` also doesn't yet validate specific fields; Pydantic addresses that next.
+
+### Test locally (in the tutorial directory)
+
+```powershell
+python -m uvicorn main:app --reload
+```
+
+- `http://127.0.0.1:8000/` — GET route.
+- `http://127.0.0.1:8000/posts` — GET example.
+- `http://127.0.0.1:8000/docs` — FastAPI's interactive documentation.
+- In Postman, set method to **POST**, URL to `http://127.0.0.1:8000/createposts`, choose **Body → raw → JSON**, provide the JSON example, and press **Send**.
+
+The actual route paths depend on the code currently saved in `fcc-tut/main.py`.
+
+## Learning workflow
+
+1. Watch the freeCodeCamp lesson in sequence.
+2. Understand the logic behind the instructor's Python code.
+3. Write and test the tutorial project myself.
+4. Apply the same concepts independently to StudyTrack.
+5. Update these notes with confirmed code, mistakes, corrections, and test results.
+
+## Topics coming up
+
+- Pydantic request validation and schemas
+- CRUD and in-memory post storage
+- Path parameters, status codes, and error handling
+- PostgreSQL, SQLAlchemy, and databases
 - Authentication and authorization
 - API testing and deployment
 
-## Run the current StudyTrack starter
+## Safety
 
-From the `studytrack` directory with FastAPI and Uvicorn installed:
-
-    python -m uvicorn main:app --reload
-
-Then visit `http://127.0.0.1:8000/docs`.
-
-## Public repository safety
-
-Never commit passwords, tokens, credentials, `.env` files, or personal information. Review changes before every commit and push.
+This is a **public repository**. Before committing or pushing, check for passwords, tokens, API keys, personal information, `.env` files, and private database contents. Do not assume `.gitignore` protects files that were already tracked.
