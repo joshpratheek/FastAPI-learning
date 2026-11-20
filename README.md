@@ -143,9 +143,38 @@ The actual route paths depend on the code currently saved in `fcc-tut/main.py`.
 4. Apply the same concepts independently to StudyTrack.
 5. Update this README after meaningful lessons and explanations, documenting what I actually understood, questions resolved, code examples, mistakes, corrections, and confirmed test results. For longer lessons, use detailed notes in the `notes/` folder and link them here.
 
+## Pydantic — first independently written model (review in progress)
+
+The next lesson introduces **Pydantic request validation**. In discussion, I correctly explained why a model with required `title` and `content` fields rejects a request missing `content`: validation runs before the endpoint handler.
+
+I drafted this model locally (shared in chat, **not yet verified as committed**):
+
+```python
+from pydantic import BaseModel
+from typing import Optional  # Correction: needed for Optional[int]
+
+class Post(BaseModel):
+    id: int
+    title: str
+    content: str
+    published: bool = True
+    rating: Optional[int] = None
+```
+
+**Review notes:**
+- `id`, `title`, and `content` are required because they have no default values.
+- `published` is optional in the request and defaults to `True`.
+- `rating` accepts `int` or `None`, with default `None`; the default makes it optional in incoming JSON.
+- I initially forgot to import `Optional` from `typing`, which would prevent the module from loading.
+- I wrote `post.__dict()`, but `__dict__` is a dictionary attribute, not a callable method. In Pydantic v2, use `post.model_dump()` when I want a normal Python dictionary. Calling `model_dump()` alone does not store data.
+- Returning `{"msg": post}` is supported: FastAPI can serialize a Pydantic model into JSON.
+- The client currently needs to supply `id`; later, when persistence is implemented, server-generated IDs are generally preferable.
+- Declaring an endpoint parameter as `post: Post` makes FastAPI parse and validate the HTTP JSON request body using the model.
+- **Next check:** Send a post with `id`, `title`, and `content` but omit `published` and `rating`; reason about their default values. Fix the two errors in the locally saved file before testing.
+
 ## Topics coming up
 
-- Pydantic request validation and schemas
+- [In progress] Pydantic request validation and schemas
 - CRUD and in-memory post storage
 - Path parameters, status codes, and error handling
 - PostgreSQL, SQLAlchemy, and databases
