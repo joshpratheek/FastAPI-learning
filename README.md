@@ -16,11 +16,11 @@ Following the instructor's social-media-style backend API project in `fcc-tut`. 
 
 Apply each lesson to my own study-session tracking API **after** completing the corresponding tutorial practice. The version currently committed has three in-memory study sessions and GET endpoints `/`, `/sessions`, and `/first-session`.
 
-## Current progress — Pydantic models and POST request data
+## Current progress — Pydantic models and beginning in-memory CRUD
 
 **Course section reached:** Starting FastAPI (36:21), Path Operations (39:23), Postman introduction (53:22), and HTTP Requests / first POST request (57:34 onwards).  
-**Most recently discussed:** Pydantic schema validation (1:07:29), defaults, model objects vs dictionaries, and backend-generated IDs. **Next video chapter:** CRUD Operations (1:22:45). Database setup begins later (3:53:48), not at 1:22:48.  
-**Status:** Pydantic `Post` model and POST endpoint are now committed to GitHub and reviewed. Swagger UI request-body practice was reported by the learner; the assistant has not run the local server.
+**Most recently discussed:** Pydantic validation, `model_dump()`, generating IDs, and using a Python list to create and retrieve posts. **Now learning:** In-memory CRUD Operations (from 1:22:45). Database setup begins later (3:53:48).  
+**Status:** Pydantic `Post` model and an earlier POST endpoint are committed to GitHub and reviewed. The latest in-memory CRUD code was shared in chat and reviewed but has **not yet been verified as pushed to GitHub**. Live tests have not been independently run by the assistant.
 
 ### Concepts learned so far
 
@@ -210,10 +210,45 @@ Reviewed the connected public repository on 2026-11-20: `fcc-tut/main.py` now co
 
 **Minor cleanup:** The standalone `post.model_dump()` line produces a dictionary but doesn't use its return value. Either remove that line and return the model as is, or assign the result and use it. The previous `Body` import is unused and may be removed. These aren't blockers for continuing. The code was inspected on GitHub but not executed.
 
+## In-memory CRUD — first GET and POST storing posts
+
+**Latest code shared in conversation (not yet verified on GitHub):**
+
+```python
+from random import randint
+
+my_posts = [
+    {"title": "title of post 1", "content": "content of post 1", "id": 1},
+    {"title": "favorite foods", "content": "I like pizza", "id": 2}
+]
+
+@app.get("/posts")
+def get_posts():
+    return {"data": my_posts}
+
+@app.post("/posts")
+def create_post(post: Post):
+    post_dict = post.model_dump()
+    post_dict["id"] = randint(1, 100000)
+    my_posts.append(post_dict)
+    return {"new_post": post_dict}
+```
+
+What I understand:
+- The same URL path can support **GET /posts** (read the list) and **POST /posts** (create a new post) because the HTTP method distinguishes the operation.
+- `post: Post` validates request-body fields with Pydantic before the handler runs.
+- `post.model_dump()` returns a regular Python dictionary, which can be accessed or modified by key, e.g. `post_dict["title"]`.
+- `randint(1, 100000)` generates a possible ID and `post_dict["id"] = ...` adds it to the dictionary, but random IDs can collide with existing IDs.
+- `my_posts.append(post_dict)` **actually stores** the post in the in-memory list, unlike the previous endpoint that only returned a success message. A following GET request can show the new entry.
+- **Limitations:** This data is lost on server restart and isn't shared reliably across multiple worker processes. A real database is introduced later.
+- **Code review:** Correct for this tutorial stage. `from fastapi.params import Body` is now unused and can be removed. The example above only shows the changed parts; it depends on the existing `Post(BaseModel)` in the same file.
+
+**Next practical check:** Send a JSON POST request to `/posts` in Swagger UI, then GET `/posts` and verify the list grew by one. Review and commit the working version before assuming GitHub reflects the code in VS Code.
+
 ## Topics coming up
 
-- [Discussed; pending verified GitHub code] Pydantic request validation and schemas
-- CRUD and in-memory post storage
+- [x] Pydantic request validation and schemas (committed checkpoint)
+- [In progress; shared in chat, not yet verified as pushed] CRUD and in-memory post storage
 - Path parameters, status codes, and error handling
 - PostgreSQL, SQLAlchemy, and databases
 - Authentication and authorization
