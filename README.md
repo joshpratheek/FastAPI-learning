@@ -8,9 +8,9 @@ Learn to design, build, test, and document FastAPI backends. Focus on Python, HT
 
 ## Projects
 
-### freeCodeCamp tutorial — working locally
+### [freeCodeCamp tutorial — first working routes](fcc-tut/main.py)
 
-Following the instructor's social-media-style API project. My local tutorial folder is named `fcc-tut` (as shown in my workspace). **No tutorial source code is committed to this repository yet**, so the example below documents concepts rather than claiming to be a copy of my current local `main.py`.
+Following the instructor's social-media-style backend API project. The local folder is `fcc-tut`, and the initial GET and POST endpoint implementation is now committed to GitHub. The actual code has been reviewed for correctness up through receiving a JSON request body.
 
 ### [StudyTrack — independent API project](studytrack/main.py)
 
@@ -20,7 +20,7 @@ Apply each lesson to my own study-session tracking API **after** completing the 
 
 **Course section reached:** Starting FastAPI (36:21), Path Operations (39:23), Postman introduction (53:22), and HTTP Requests / first POST request (57:34 onwards).  
 **Next section:** Schema Validation with Pydantic (1:07:29).  
-**Status:** Reached this point in the video. Practised sending JSON with FastAPI's Swagger UI and discussed its connection to Postman; the local Python source has not been independently inspected or committed here.
+**Status:** Reached this point in the video; practised sending JSON using FastAPI's Swagger UI and discussed its connection to Postman. Initial tutorial `main.py` is committed and its code has been reviewed; live requests have not been independently run by the assistant.
 
 ### Concepts learned so far
 
@@ -61,6 +61,32 @@ I opened `POST /createposts` in `/docs` and observed **Request body required** a
 I replaced it with a JSON object and executed the request. **Swagger UI and Postman are both HTTP clients** that can send the same JSON to the same FastAPI endpoint; the server-side `payload` receives the data the same way regardless of which client sends it. Swagger UI is auto-generated from FastAPI's schema, while Postman is a separate API testing client.
 
 **Question resolved:** The Pydantic class I remembered from earlier API practice is a *different way of declaring and validating a request body*. It is written in Python, not inside Swagger UI. We'll learn that next in the Pydantic section.
+
+### Verified tutorial code on GitHub
+
+The actual [`fcc-tut/main.py`](fcc-tut/main.py) at the first committed checkpoint contains:
+
+```python
+from fastapi import FastAPI
+from fastapi.params import Body
+
+app= FastAPI()
+
+@app.get("/")
+def root():
+    return {"msg" : "hello world"}
+
+@app.get("/posts")
+def get_posts():
+    return {"data" : "These are your posts"}
+
+@app.post("/createposts")
+def create_post(payload: dict = Body(...)):
+    print(payload)
+    return {"msg" : "Post Created"}
+```
+
+**Code review:** All three routes, the FastAPI instance, and the required dictionary request body are valid for this stage. Importing `Body` from `fastapi.params` works; `from fastapi import Body` is the recommended public import. The POST endpoint currently echoes only a success message and does **not** persist posts; this is expected at this point. Tests were not executed by the reviewer.
 
 ### Consolidated practice example for this stage
 
