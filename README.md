@@ -8,9 +8,9 @@ Learn to design, build, test, and document FastAPI backends. Focus on Python, HT
 
 ## Projects
 
-### [freeCodeCamp tutorial — first working routes](fcc-tut/main.py)
+### [freeCodeCamp tutorial — GET, POST, and Pydantic validation](fcc-tut/main.py)
 
-Following the instructor's social-media-style backend API project. The local folder is `fcc-tut`, and the initial GET and POST endpoint implementation is now committed to GitHub. The actual code has been reviewed for correctness up through receiving a JSON request body.
+Following the instructor's social-media-style backend API project in `fcc-tut`. The initial GET/POST code and the updated Pydantic validation code have both been committed to GitHub and reviewed.
 
 ### [StudyTrack — independent API project](studytrack/main.py)
 
@@ -20,7 +20,7 @@ Apply each lesson to my own study-session tracking API **after** completing the 
 
 **Course section reached:** Starting FastAPI (36:21), Path Operations (39:23), Postman introduction (53:22), and HTTP Requests / first POST request (57:34 onwards).  
 **Most recently discussed:** Pydantic schema validation (1:07:29), defaults, model objects vs dictionaries, and backend-generated IDs. **Next video chapter:** CRUD Operations (1:22:45). Database setup begins later (3:53:48), not at 1:22:48.  
-**Status:** Reached the Pydantic section and discussed a new `Post` model in chat. The newer Pydantic code has not yet been verified in GitHub; the previous GET/POST checkpoint is committed and reviewed. Swagger UI request-body practice was reported by the learner; the assistant has not run the local server.
+**Status:** Pydantic `Post` model and POST endpoint are now committed to GitHub and reviewed. Swagger UI request-body practice was reported by the learner; the assistant has not run the local server.
 
 ### Concepts learned so far
 
@@ -64,7 +64,7 @@ I replaced it with a JSON object and executed the request. **Swagger UI and Post
 
 ### Pydantic lesson — model, defaults, model_dump, and generated IDs
 
-**New code discussed in chat (not yet verified as committed):**
+**Pydantic model progression:** The first draft below had a required `id`, but the **latest committed version no longer includes `id`**, since the client should not need to supply it.
 
 ```python
 from typing import Optional
@@ -117,6 +117,8 @@ def create_post(payload: dict = Body(...)):
 ```
 
 **Code review:** All three routes, the FastAPI instance, and the required dictionary request body are valid for this stage. Importing `Body` from `fastapi.params` works; `from fastapi import Body` is the recommended public import. The POST endpoint currently echoes only a success message and does **not** persist posts; this is expected at this point. Tests were not executed by the reviewer.
+
+**Historical checkpoint:** The example immediately above is the first commit's code. The **current code** linked in `fcc-tut/main.py` uses `Post(BaseModel)` and `create_post(post: Post)` instead.
 
 ### Consolidated practice example for this stage
 
@@ -200,11 +202,13 @@ class Post(BaseModel):
 - Returning `{"msg": post}` is supported: FastAPI can serialize a Pydantic model into JSON.
 - The client currently needs to supply `id`; later, when persistence is implemented, server-generated IDs are generally preferable.
 - Declaring an endpoint parameter as `post: Post` makes FastAPI parse and validate the HTTP JSON request body using the model.
-- **Next check:** Send a post with `id`, `title`, and `content` but omit `published` and `rating`; reason about their default values. Fix the two errors in the locally saved file before testing.
+- **Update:** The missing `Optional` import was fixed, and the incorrect `post.__dict()` call was replaced with `post.model_dump()` in the committed version. Since `id` was removed, test a request with `title` and `content`, omitting `published` and `rating`, to confirm the default values.
 
 ### GitHub review checkpoint
 
-Reviewed the connected public repository on 2026-11-20: `fcc-tut/main.py` still contains the first valid GET routes and `create_post(payload: dict = Body(...))` POST handler. **There is no committed `Post(BaseModel)` or `post.model_dump()` in that file yet**, so the new Pydantic implementation cannot be checked until the local file is saved, committed, and pushed. Keep the tutorial code self-written; documentation updates don't replace a code commit.
+Reviewed the connected public repository on 2026-11-20: `fcc-tut/main.py` now contains a valid `Post(BaseModel)` with required `title` and `content`, plus `published: bool = True` and `rating: Optional[int] = None`. It correctly declares `create_post(post: Post)` and returns the model in a JSON response. The `id` field was removed, and `Optional` was imported correctly.
+
+**Minor cleanup:** The standalone `post.model_dump()` line produces a dictionary but doesn't use its return value. Either remove that line and return the model as is, or assign the result and use it. The previous `Body` import is unused and may be removed. These aren't blockers for continuing. The code was inspected on GitHub but not executed.
 
 ## Topics coming up
 
