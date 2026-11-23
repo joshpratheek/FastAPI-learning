@@ -1,0 +1,18 @@
+$kind: http-request
+description: ""
+url: http://127.0.0.1:8000/posts
+method: POST
+body:
+  type: json
+  content: "{\r
+
+    \  \"title\": \"Learning FastAPI\",\r
+
+    \  \"content\": \"Today I learned how to create posts using POST requests.\",\r
+
+    \  \"published\": true,\r
+
+    \  \"rating\": 5\r
+
+    }"
+order: 1000
