@@ -8,7 +8,7 @@ Learn to design, build, test, and document FastAPI backends. Focus on Python, HT
 
 ## Projects
 
-### [freeCodeCamp tutorial — GET, POST, and Pydantic validation](fcc-tut/main.py)
+### [freeCodeCamp tutorial — Pydantic and in-memory CRUD](fcc-tut/main.py)
 
 Following the instructor's social-media-style backend API project in `fcc-tut`. The initial GET/POST code and the updated Pydantic validation code have both been committed to GitHub and reviewed.
 
@@ -16,11 +16,11 @@ Following the instructor's social-media-style backend API project in `fcc-tut`. 
 
 Apply each lesson to my own study-session tracking API **after** completing the corresponding tutorial practice. The version currently committed has three in-memory study sessions and GET endpoints `/`, `/sessions`, and `/first-session`.
 
-## Current progress — Pydantic models and beginning in-memory CRUD
+## Current progress — CRUD review complete; learning Python packages
 
 **Course section reached:** Starting FastAPI (36:21), Path Operations (39:23), Postman introduction (53:22), and HTTP Requests / first POST request (57:34 onwards).  
-**Most recently discussed:** Pydantic validation, `model_dump()`, generating IDs, and using a Python list to create and retrieve posts. **Now learning:** In-memory CRUD Operations (from 1:22:45). Database setup begins later (3:53:48).  
-**Status:** Pydantic `Post` model and an earlier POST endpoint are committed to GitHub and reviewed. The latest in-memory CRUD code was shared in chat and reviewed but has **not yet been verified as pushed to GitHub**. Live tests have not been independently run by the assistant.
+**Most recently discussed:** GET by ID, route ordering, HTTP status codes, DELETE using `enumerate()` and `pop()`, PUT using indexed list assignment, and Python package/module imports. **Current lesson reached:** organizing `main.py` under an `app/` package. Database setup begins later in the course.  
+**Status:** An earlier Pydantic `Post` model and POST endpoint are committed to GitHub. All four in-memory CRUD operations were written/reviewed in chat; the `app/` directory and imports were reviewed conceptually. **These newer changes have NOT yet been verified in the repository's `fcc-tut/main.py`.** The learner plans to update, test and push that file locally. The reviewer has not executed the local API.
 
 ### Concepts learned so far
 
@@ -210,7 +210,7 @@ Reviewed the connected public repository on 2026-11-20: `fcc-tut/main.py` now co
 
 **Minor cleanup:** The standalone `post.model_dump()` line produces a dictionary but doesn't use its return value. Either remove that line and return the model as is, or assign the result and use it. The previous `Body` import is unused and may be removed. These aren't blockers for continuing. The code was inspected on GitHub but not executed.
 
-## In-memory CRUD — first GET and POST storing posts
+## In-memory CRUD — first GET and POST storing posts (earlier checkpoint)
 
 **Latest code shared in conversation (not yet verified on GitHub):**
 
@@ -245,11 +245,123 @@ What I understand:
 
 **Next practical check:** Send a JSON POST request to `/posts` in Swagger UI, then GET `/posts` and verify the list grew by one. Review and commit the working version before assuming GitHub reflects the code in VS Code.
 
+## Learning checkpoint — GET by ID through CRUD completion and Python packages (2026-11-23)
+
+**Source of this section:** Code and explanations written and reviewed in conversation, **not** verified as committed code. The checked GitHub `fcc-tut/main.py` still contains the earlier Pydantic/POST version at this checkpoint.
+
+### GET one post, 404 errors, and path ordering
+
+```python
+def find_post(id: int):
+    for post in my_posts:
+        if post["id"] == id:
+            return post
+    # Implicit None if no match
+
+@app.get("/posts/{id}")
+def get_post(id: int):
+    post = find_post(id)
+    if post is None:
+        raise HTTPException(status_code=404, detail=f"Post with id {id} not found")
+    return {"post_details": post}
+```
+
+- `/posts/{id}` is a dynamic path. With `id: int`, FastAPI validates/converts a path segment such as `"2"` into `2`; `"latest"` fails integer validation if it is captured by that route.
+- **Route order matters:** register a specific route such as `/posts/latest` before a conflicting dynamic route `/posts/{id}` to avoid the dynamic route capturing `latest`.
+- `find_post` performs a linear scan and returns the entire matching dictionary; if it finds none, Python implicitly returns `None`.
+- Check `post is None` to raise `HTTPException(status_code=404)`, otherwise the matching post is returned.
+- **Learning check:** The learner correctly explained that a found dictionary skips the exception block, and that a path parameter's type is validated by FastAPI.
+
+### HTTP response status versus body
+
+- `@app.post("/posts", status_code=201)` sets the **HTTP status** to `201 Created` after successful execution.
+- `return {"new_post": post_dict}` sets the **response body**; FastAPI serializes the Python dictionary to JSON for the client.
+- `200 OK` is a common successful GET/update response; `404 Not Found` indicates missing requested posts; `422` indicates request/path validation failure.
+- A successful DELETE can use `204 No Content`: **do not return a JSON body** along with 204. The learner initially set `status_code=204` while still returning `{"post_details": deleted_post}`, and corrected this conceptual mismatch.
+
+### DELETE: from post ID to list index
+
+```python
+def find_index_post(id: int):
+    for index, post in enumerate(my_posts):
+        if post["id"] == id:
+            return index
+
+@app.delete("/posts/{id}", status_code=204)
+def delete_post(id: int):
+    post_index = find_index_post(id)
+    if post_index is None:
+        raise HTTPException(status_code=404, detail=f"Post with id {id} not found")
+    my_posts.pop(post_index)
+```
+
+- `enumerate(my_posts)` yields the index and dictionary as each iteration proceeds.
+- `my_posts.pop(index)` removes (and returns) an item **by list index**, not by its `"id"` value.
+- **The difference:** `find_post(id)` returns a dictionary for GET; `find_index_post(id)` returns its list index for DELETE/PUT.
+- Check for `None` **before** `pop`; calling `pop(None)` when no match exists raises a Python error rather than the intended 404.
+- `0 is None` is `False`: list index 0 is valid. `if not post_index` would incorrectly reject index 0 because 0 is falsy.
+- **Mistakes corrected:** Initial `find_index_post` returned the first `(index, post)` pair without comparing IDs; the corrected version compares `post["id"] == id` and returns only the index. Initial DELETE annotated `id: id` instead of `id: int`, and called `pop` before checking for a missing post.
+- **Important clarification prompted by DSA-style reasoning:** Removing a post shifts subsequent **list indexes**, but doesn't alter the `"id"` values inside the remaining dictionaries. After deleting ID 1, GET ID 1 should return 404 even if another post moves into index 0.
+
+### UPDATE (PUT): replace a post while preserving its ID
+
+```python
+@app.put("/posts/{id}")
+def update_post(id: int, post: Post):
+    post_index = find_index_post(id)
+    if post_index is None:
+        raise HTTPException(status_code=404, detail=f"Post with id {id} not found")
+
+    post_dict = post.model_dump()
+    post_dict["id"] = id
+    my_posts[post_index] = post_dict
+    return {"updated_post": my_posts[post_index]}
+```
+
+- `id: int` comes from the URL and identifies **which** post to update. `post: Post` comes from the JSON body and contains **what** data to use.
+- `post.model_dump()` has no `id` because the request model doesn't declare one; the existing ID must be restored with `post_dict["id"] = id`.
+- Replace at the correct list index using `my_posts[post_index] = post_dict`. This does **not** append or remove an element.
+- **Mistakes corrected:** `my_posts(post_index)` incorrectly tries to call a list as a function; `my_posts["id"] = post_index` incorrectly indexes a list by a string, confuses list position with ID, and modifies the wrong object. Correct assignment adds `id` to `post_dict`, then stores it in `my_posts[post_index]`.
+- **Learning check:** For `PUT /posts/20` where the target is at list index 1, the updated dictionary must retain `"id": 20`, not 1. The learner answered this correctly.
+
+### CRUD operations at a glance
+
+| Operation | Method/path | In-memory action |
+| --- | --- | --- |
+| Create | `POST /posts` | Validate, `model_dump()`, assign ID, `my_posts.append(post_dict)`; respond 201 |
+| Read all | `GET /posts` | Return `my_posts` |
+| Read one | `GET /posts/{id}` | Scan for matching `"id"`; 404 if absent |
+| Update | `PUT /posts/{id}` | Find index, preserve ID, assign `my_posts[index] = post_dict` |
+| Delete | `DELETE /posts/{id}` | Find index, check missing, `my_posts.pop(index)`; respond 204 without body |
+
+**Current limitations:** Storage is in memory and is reset on server restart. `randint` can generate colliding IDs. This is appropriate tutorial practice, not yet a production database-backed API.
+
+### Python modules and packages — organizing under `app/`
+
+Planned project layout once local code is reorganized:
+
+```text
+fcc-tut/
+└── app/
+    ├── __init__.py
+    └── main.py
+```
+
+- A **module** is a Python file (such as `main.py`). A **package** groups modules under a package name (here `app`); `__init__.py` conventionally marks an ordinary package and may remain empty. Modern Python also supports namespace packages without this file.
+- After moving `main.py` into `app/`, start Uvicorn **from the `fcc-tut/` directory** with `python -m uvicorn app.main:app --reload`.
+- Pattern: `package.module:instance`. In `app.main:app`, the first `app` is the package, `main` is the file/module, and the last `app` is the variable holding `FastAPI()`.
+- Example variation: `backend/server.py` with `api = FastAPI()` runs as `python -m uvicorn backend.server:api --reload`. The learner initially answered `server.main:app` and corrected the naming concept.
+- For `app/models.py` with class `User`, valid imports from `app/main.py` are `from app.models import User` (**absolute**) or `from .models import User` (**relative**), assuming `main.py` is imported as part of the package. The learner arrived at both valid forms.
+- The existing endpoint logic need not change merely because `main.py` is moved, but module imports and the launch command may need updating.
+
+**Next steps for the learner:** Copy/rewrite the reviewed CRUD handlers into local `main.py`; create `app/__init__.py` and move `main.py` inside `app/`; run the new Uvicorn command; test POST, GET by ID, PUT, DELETE, missing-ID 404s, and 204 without a body; then commit and push. These tests and the rearranged files have **not yet been verified** in the GitHub repository.
+
 ## Topics coming up
 
 - [x] Pydantic request validation and schemas (committed checkpoint)
-- [In progress; shared in chat, not yet verified as pushed] CRUD and in-memory post storage
-- Path parameters, status codes, and error handling
+- [x] CRUD and in-memory post storage (reviewed in chat; push pending)
+- [x] Path parameters, route ordering, status codes, and error handling (reviewed in chat; push pending)
+- [x] Python packages, `app/` folder, imports and Uvicorn entry point (conceptual review; local restructure pending)
 - PostgreSQL, SQLAlchemy, and databases
 - Authentication and authorization
 - API testing and deployment
