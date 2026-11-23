@@ -67,7 +67,7 @@ def delete_post(id: int):
                 detail = f"Post with id {id} not found"
             )
 
-    deleted_post = my_posts.pop(post_index)
+    my_posts.pop(post_index)
 
     
 @app.put("/posts/{id}")
@@ -81,7 +81,7 @@ def update_post(id: int, post: Post):
                 )
 
     post_dict = post.model_dump()
-    post_dict["id"] = post_index
+    post_dict["id"] = id
     my_posts[post_index] = post_dict
     
     return {"updated_post" : my_posts[post_index]} 
